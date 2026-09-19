@@ -4,6 +4,7 @@
 
 [![Deploy to GitHub Pages](https://github.com/zhaoxuejie/agent-harness-tutorial/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/zhaoxuejie/agent-harness-tutorial/actions/workflows/deploy-pages.yml)
 [![GitHub Pages](https://img.shields.io/badge/demo-online-0ea5b7)](https://zhaoxuejie.github.io/agent-harness-tutorial/)
+[![Release](https://img.shields.io/github/v/release/zhaoxuejie/agent-harness-tutorial?color=0ea5b7&label=release)](https://github.com/zhaoxuejie/agent-harness-tutorial/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Made with HTML](https://img.shields.io/badge/stack-HTML%20%2B%20CSS%20%2B%20JS-orange)](#技术栈)
 
@@ -84,3 +85,7 @@ python -m http.server 8000
 ## 📄 License
 
 [MIT](./LICENSE) © 2024 zhaoxuejie
+
+## 📝 更新日志
+
+版本变更详见 [CHANGELOG.md](./CHANGELOG.md)，历史版本见 [Releases](https://github.com/zhaoxuejie/agent-harness-tutorial/releases)。
