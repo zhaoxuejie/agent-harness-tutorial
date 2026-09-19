@@ -1,0 +1,23 @@
+# OS / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.idea/
+.vscode/
+
+# Logs & temp
+*.log
+npm-debug.log*
+tmp/
+temp/
+
+# Node (kept in case a build step is added later)
+node_modules/
+dist/
+.cache/
+
+# Local env
+.env
+.env.local

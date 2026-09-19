@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段 08 · 观测与部署 · Agent+Harness 教程</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230ea5b7'/%3E%3Ccircle cx='10' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Ccircle cx='22' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M14 14 L18 14 M14 18 L18 18' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://miaoda.feishu.cn"><link href="https://miaoda.feishu.cn/fonts/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-chapter="8">
+<button class="theme-toggle" aria-label="切换主题">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+<button id="navToggle" aria-label="切换目录">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div id="scrim"></div>
+<div id="app">
+  <aside id="sidebar">
+    <a class="brand" href="index.html" style="text-decoration:none;color:inherit">
+      <svg class="brand-logo" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="9" fill="#0ea5b7"/>
+        <circle cx="12" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <circle cx="28" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <path d="M17 17.5 L23 17.5 M17 22.5 L23 22.5" stroke="white" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">Agent + Harness</div>
+        <div class="brand-sub">从零到一 · 沉浸式教程</div>
+      </div>
+    </a>
+    <nav class="nav-scroll" id="nav"></nav>
+    <div class="side-foot">
+      <b id="progTxt">0 / 9 章</b>
+      <div class="progress-bar"><i id="progFill"></i></div>
+    </div>
+  </aside>
+  <main id="main">
+    <section class="stage">
+<div class="stage-head">
+        <div class="stage-num">CHAPTER 08 · 收官</div>
+        <h1 class="stage-title">观测与部署：把造好的 <span class="hl">Harness</span> 照亮并送上线</h1>
+        <p class="stage-desc">最后一块拼图：给 Harness 装"仪表盘"看清每一步，再把它打包成一个能稳定上线的工程。收官之后，你已经亲手造出了完整的 Agent 执行层。</p>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">01</span>本阶段目标</h2>
+        <div class="goal-card">
+          <h3>学完你应该能</h3>
+          <ul>
+            <li><span class="chk">✓</span>理解可观测性：日志、追踪、指标三件套</li>
+            <li><span class="chk">✓</span>给 Harness 加一个"执行轨迹"输出，驱动可视化面板</li>
+            <li><span class="chk">✓</span>看到九章造出的<b>完整架构</b>，知道怎么工程化落地</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">02</span>原理：可观测性 = 日志 + 追踪 + 指标</h2>
+        <p>Agent 系统比普通后端更"黑"：每一步都在变，出了错不知道是模型抽风还是工具崩了。可观测性三件套：</p>
+        <ul>
+          <li><b>日志（Log）</b>：离散的事件记录——"调用了 calculate，耗时 80ms"。</li>
+          <li><b>追踪（Trace）</b>：一次任务的完整执行链——编排器 → 专才 → 工具，串成树。</li>
+          <li><b>指标（Metric）</b>：聚合数字——平均步数、成功率、token 消耗。</li>
+        </ul>
+        <p>我们前面造的 <b>Step 记录 + 状态快照</b> 已经给追踪打好了底。这一章把它变成一个可视化面板，你在下面就能"看到"一个 Agent 是怎么一步步解决问题的。</p>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">03</span>交互演示 · 一个 Agent 的执行轨迹</h2>
+        <p>下面这段轨迹来自一个<b>用前几章 Harness 跑起来</b>的真实风格任务（"调研并总结冒泡排序"）。点击"运行一次"可以看到编排器拆解、专才循环、工具调用如何串成一条链：</p>
+        <div id="demo" style="border:1px solid var(--line);border-radius:12px;background:var(--panel-2);padding:20px">
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+            <button id="runDemo" style="border:1px solid var(--accent-dim);background:rgba(56,214,228,.12);color:var(--accent);padding:8px 18px;border-radius:8px;font-size:13.5px;font-family:var(--font-mono);cursor:pointer">▶ 运行一次</button>
+            <button id="resetDemo" style="border:1px solid var(--line);background:none;color:var(--muted);padding:8px 16px;border-radius:8px;font-size:13px;font-family:var(--font-mono);cursor:pointer">重置</button>
+            <span style="font-size:12.5px;color:var(--muted);font-family:var(--font-mono)" id="demoStat">等待运行…</span>
+          </div>
+          <div id="trace" style="font-family:var(--font-mono);font-size:13px;line-height:1.75"></div>
+        </div>
+        <div class="note">面板里的每一行都对应 Harness 记录的一条 <b>Step</b>——这正是阶段 06 状态管理的功劳。真实生产会用完整 APM（如 OpenTelemetry）承载同样结构的数据。</div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">04</span>工程化落地清单</h2>
+        <p>教程到此为止是"讲清原理的最小实现"。真要上线，把这几件事补上：</p>
+        <div class="goal-card">
+          <h3>从原型到生产的 Checklist</h3>
+          <ul>
+            <li><span class="chk">✓</span><b>接口化</b>：把 Harness 封装成可复用类/服务，模型与工具都走接口</li>
+            <li><span class="chk">✓</span><b>持久化</b>：状态/记忆存入数据库，支持跨会话恢复</li>
+            <li><span class="chk">✓</span><b>限流与配额</b>：token、步数、并发都要有硬上限</li>
+            <li><span class="chk">✓</span><b>安全</b>：工具白名单、参数校验、敏感信息脱敏（阶段 06 提到过）</li>
+            <li><span class="chk">✓</span><b>可观测</b>：接入日志/追踪/指标，统一 trace_id</li>
+            <li><span class="chk">✓</span><b>重试与降级</b>：模型超时重试、工具失败降级回填</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">05</span>九章总装 · 你亲手造出的架构</h2>
+        <p>把每一章的新增零件拼在一起，就是一台完整的 Agent 执行机。左下是你的代码，右上是你掌握的每一个概念：</p>
+        <div class="mermaid-box">
+          <pre class="mermaid">
+flowchart TB
+    U["用户请求"] --> ORCH["编排器 Orchestrator(07)"]
+    ORCH --> H["Harness 执行层(03)"]
+    H --> LOOP["Agent Loop(01)"]
+    LOOP --> TOOL["工具调用(02)"]
+    H --> PLUGIN["插件机制(04)"]
+    H --> MEM["记忆模块(05)"]
+    H --> STATE["状态管理(06)"]
+    H --> OBS["观测面板(08)"]
+    TOOL --> PLUGIN
+    STATE --> OBS
+          </pre>
+          <div class="mermaid-cap">图 08 · 九章总装：从裸循环到可观测、可调度的完整 Harness 架构</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">06</span>毕业思考题</h2>
+        <div class="quiz">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>想一想</h3>
+          <ol>
+            <li>回头看你造出的 Harness，<b>哪一环最薄弱</b>？如果要扛住真实并发流量，先补哪个？（提示：状态与工具的副作用）</li>
+            <li>现在的 Harness 是你的实现。换成真实框架时，<b>哪里能直接平移</b>，哪里是框架替你做了？</li>
+            <li>给这套教程起个<b>你自己的进阶方向</b>：下一步你想给 Harness 加什么新器官？</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="preview">
+        <span class="arr">→</span>
+        <div><b>恭喜通关</b><p>你已亲手从裸循环一路造出带工具、插件、记忆、状态、调度与观测的完整 Harness。底层原理，尽在掌中。</p></div>
+      </div>
+    <div class="stage-foot">
+      <a class="page-btn prev" href="chapter-7.html"><span class="lab">← 上一章</span><span class="tt">阶段 07 · 多 Agent</span></a>
+      <a class="page-btn next" disabled><span class="lab">下一章 →</span><span class="tt">已是最后一章</span></a>
+    </div>
+    </section>
+
+  </main>
+</div>
+<script src="assets/mermaid.min.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

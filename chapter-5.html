@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段 05 · 记忆模块 · Agent+Harness 教程</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230ea5b7'/%3E%3Ccircle cx='10' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Ccircle cx='22' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M14 14 L18 14 M14 18 L18 18' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://miaoda.feishu.cn"><link href="https://miaoda.feishu.cn/fonts/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-chapter="5">
+<button class="theme-toggle" aria-label="切换主题">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+<button id="navToggle" aria-label="切换目录">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div id="scrim"></div>
+<div id="app">
+  <aside id="sidebar">
+    <a class="brand" href="index.html" style="text-decoration:none;color:inherit">
+      <svg class="brand-logo" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="9" fill="#0ea5b7"/>
+        <circle cx="12" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <circle cx="28" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <path d="M17 17.5 L23 17.5 M17 22.5 L23 22.5" stroke="white" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">Agent + Harness</div>
+        <div class="brand-sub">从零到一 · 沉浸式教程</div>
+      </div>
+    </a>
+    <nav class="nav-scroll" id="nav"></nav>
+    <div class="side-foot">
+      <b id="progTxt">0 / 9 章</b>
+      <div class="progress-bar"><i id="progFill"></i></div>
+    </div>
+  </aside>
+  <main id="main">
+    <section class="stage">
+<div class="stage-head">
+        <div class="stage-num">CHAPTER 05 · 别让 Agent 失忆</div>
+        <h1 class="stage-title">记忆模块：<span class="hl">短期记忆</span>与上下文的艺术</h1>
+        <p class="stage-desc">上下文一长，模型就"塞不下"或"记不清"。记忆模块负责：保留关键信息、压缩旧对话、在需要时把记忆送回循环。</p>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">01</span>本阶段目标</h2>
+        <div class="goal-card">
+          <h3>学完你应该能</h3>
+          <ul>
+            <li><span class="chk">✓</span>区分"对话历史"与"记忆"：前者原样保留，后者被提炼</li>
+            <li><span class="chk">✓</span>给 Harness 挂一个 <b>Memory</b> 模块（截断 + 摘要）</li>
+            <li><span class="chk">✓</span>理解"记忆"如何作为额外上下文注入循环</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">02</span>原理：记忆 = 截断 + 摘要 + 注入</h2>
+        <p>模型有<b>上下文窗口</b>。对话越长，要么放不下，要么中间的细节被"淹没"。记忆模块在 Harness 里做三件事：</p>
+        <ul>
+          <li><b>截断</b>：只保留最近 N 条原始消息，旧的移出窗口。</li>
+          <li><b>摘要</b>：把被移出部分压缩成一段"长期记忆"（可以是一次独立的模型调用）。</li>
+          <li><b>注入</b>：每次思考前，把 [长期摘要] + [最近历史] 拼起来给模型。</li>
+        </ul>
+        <div class="note">短期记忆＝最近原始消息；长期记忆＝被压缩的摘要。Harness 是这两者的"调度员"，决定每轮送什么进窗口。</div>
+        <div class="mermaid-box">
+          <pre class="mermaid">
+flowchart TD
+    NEW["新消息到达"] --> WINDOW["最近窗口 keep=6"]
+    WINDOW -- 溢出 --> OLD["被挤出"]
+    OLD --> SUM["摘要模型压缩成记忆"]
+    SUM --> MEM["长期记忆 store"]
+    MEM --> INJ["每轮注入：摘要+最近"]
+    INJ --> LLM["模型思考"]
+          </pre>
+          <div class="mermaid-cap">图 05 · 记忆：溢出对话被压缩成摘要，每轮再注入回循环</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">03</span>最小可运行代码</h2>
+        <div class="code-wrap">
+          <div class="code-head"><span class="fname">memory.py · 阶段 05</span><button class="copy-btn">复制</button></div>
+          <div class="code-body"><pre><code class="lang-py"># memory.py — 阶段 05：给 Harness 挂记忆模块
+class Memory:
+    """短期记忆 + 长期摘要。"""
+    def __init__(self, keep=6):
+        self.keep = keep           # 保留最近消息条数
+        self.recent = []           # 短期：最近原始消息
+        self.summary = ""          # 长期：被压缩的摘要
+
+    def add(self, message):
+        self.recent.append(message)
+        if len(self.recent) &gt; self.keep:
+            self._summarize_overflow()   # 挤出的部分变成摘要
+
+    def _summarize_overflow(self):
+        dropped = self.recent[:-self.keep]
+        self.recent = self.recent[-self.keep:]
+        # 真实系统里，这里用一次模型调用压缩 dropped
+        self.summary += "（" + "；".join(
+            m["content"][:20] for m in dropped) + "）"
+
+    def context(self):
+        """拼出送进模型的上下文：摘要 + 最近历史。"""
+        blocks = []
+        if self.summary:
+            blocks.append({"role": "system",
+                           "content": "长期记忆: " + self.summary})
+        return blocks + self.recent
+
+class Harness:
+    def __init__(self, agent, memory=None, max_steps=8):
+        self.agent = agent
+        self.memory = memory or Memory()
+        self.tools = {}
+        self.max_steps = max_steps
+
+    def run(self, user_input):
+        self.memory.add({"role": "user", "content": user_input})
+        step = 0
+        while step &lt; self.max_steps:
+            step += 1
+            out = self.agent.reason(self.memory.context(), self.tools)
+            if out.get("tool_call"):
+                name, args = out["tool_call"]
+                result = self.tools.get(name, lambda **k: "未知")(**args)
+                self.memory.add({"role": "tool",
+                                 "name": name, "content": result})
+                continue
+            self.memory.add({"role": "assistant", "content": out["text"]})
+            return out["text"]
+        return "已达最大步数。"</code></pre></div>
+        </div>
+        <ul>
+          <li><b>Memory</b> 接管了历史，Harness 每轮从 <code class="inline">memory.context()</code> 取上下文。</li>
+          <li><b>溢出即压缩</b>：最近消息超过 <code class="inline">keep</code>，挤出的部分被折叠成摘要。</li>
+          <li><b>注入</b>：模型每次思考都同时看到"长期记忆摘要 + 最近历史"。</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">04</span>与上一章的差异</h2>
+        <div class="diff-cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>本章新增：Memory 模块，历史从 Harness 移入记忆层</div>
+        <div class="code-wrap" style="background:#0a1420">
+          <div class="code-head"><span class="fname">diff · 04 → 05</span></div>
+          <div class="code-body" style="padding:10px 0">
+            <span class="diff-line add">class Memory:  # 新增：记忆模块</span>
+            <span class="diff-line add">    def __init__(self, keep=6):</span>
+            <span class="diff-line add">    def add(self, message): ...  # 溢出即压缩</span>
+            <span class="diff-line add">    def context(self): ...  # 摘要+最近</span>
+            <span class="diff-line add">self.memory = memory or Memory()  # Harness 挂记忆</span>
+            <span class="diff-line del">self.history = []  # 移除：历史并入 Memory</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">05</span>运行输出</h2>
+        <div class="term">
+          <div class="term-head"><span class="tb"></span><span class="tb"></span><span class="tb"></span><span>terminal — python memory.py</span></div>
+          <div class="term-body"><span class="prompt">$</span> python memory.py
+<span class="in">&gt; 用户: 我的项目代号是「雅典娜」</span>
+<span class="in">&gt; 用户: 它基于 Python 3.12 构建</span>
+<span class="in">&gt; ...（更多对话，前 6 条被挤出）...</span>
+<span class="dim"># 送进模型的下文自动变成：</span>
+<span class="dim">system: 长期记忆: （我的项目代号是「雅典娜」；它基于 Python 3.12 构建...）</span>
+<span class="dim">最近消息: 最近 6 条原始消息...</span>
+<span class="in">&gt; Agent: 记得，你的项目「雅典娜」是 Python 3.12。哪怕对话早已滚远，它没忘。</span></div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">06</span>思考题</h2>
+        <div class="quiz">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>想一想</h3>
+          <ol>
+            <li><b>截断会丢信息</b>，摘要也可能失真。在哪些场景下，宁可塞不下也不要压缩？</li>
+            <li>真实系统的记忆往往不止"摘要"一种，还会有<b>结构化记忆</b>（用户画像、偏好条目）。它和对话摘要的区别是什么？</li>
+            <li>如果同一个 Harness 要服务<b>多个会话</b>，Memory 应该按什么维度隔离？</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="preview">
+        <span class="arr">→</span>
+        <div><b>下一节 · 阶段 06</b><p>把循环的每一步"中间结果"管起来——Harness 状态管理。</p></div>
+      </div>
+    <div class="stage-foot">
+      <a class="page-btn prev" href="chapter-4.html"><span class="lab">← 上一章</span><span class="tt">阶段 04 · Harness 插件</span></a>
+      <a class="page-btn next" href="chapter-6.html"><span class="lab">下一章 →</span><span class="tt">阶段 06 · 状态管理</span></a>
+    </div>
+    </section>
+
+  </main>
+</div>
+<script src="assets/mermaid.min.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

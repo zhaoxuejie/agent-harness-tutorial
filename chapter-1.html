@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段 01 · 最简 Agent Loop · Agent+Harness 教程</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230ea5b7'/%3E%3Ccircle cx='10' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Ccircle cx='22' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M14 14 L18 14 M14 18 L18 18' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://miaoda.feishu.cn"><link href="https://miaoda.feishu.cn/fonts/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-chapter="1">
+<button class="theme-toggle" aria-label="切换主题">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+<button id="navToggle" aria-label="切换目录">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div id="scrim"></div>
+<div id="app">
+  <aside id="sidebar">
+    <a class="brand" href="index.html" style="text-decoration:none;color:inherit">
+      <svg class="brand-logo" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="9" fill="#0ea5b7"/>
+        <circle cx="12" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <circle cx="28" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <path d="M17 17.5 L23 17.5 M17 22.5 L23 22.5" stroke="white" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">Agent + Harness</div>
+        <div class="brand-sub">从零到一 · 沉浸式教程</div>
+      </div>
+    </a>
+    <nav class="nav-scroll" id="nav"></nav>
+    <div class="side-foot">
+      <b id="progTxt">0 / 9 章</b>
+      <div class="progress-bar"><i id="progFill"></i></div>
+    </div>
+  </aside>
+  <main id="main">
+    <section class="stage">
+<div class="stage-head">
+        <div class="stage-num">CHAPTER 01 · 从零开始</div>
+        <h1 class="stage-title">最简 <span class="hl">Agent Loop</span>：循环是第一性原理</h1>
+        <p class="stage-desc">这一章我们什么都不装，只写一个裸的循环。理解"思考→行动→观察"如何转起来，是读懂一切 Agent 框架的地基。</p>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">01</span>本阶段目标</h2>
+        <div class="goal-card">
+          <h3>学完你应该能</h3>
+          <ul>
+            <li><span class="chk">✓</span>说清 Agent 最小循环的三要素：思考、行动、观察</li>
+            <li><span class="chk">✓</span>亲手写一个能对话、能停止的裸循环</li>
+            <li><span class="chk">✓</span>明白"上下文历史"在循环中的角色</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">02</span>原理：一个循环是怎么转起来的</h2>
+        <p>大模型本身是<b>无状态</b>的——它不知道上一轮说了什么。所以 Agent 必须自己维护状态，并把"每一次交互"组织成一个闭环。</p>
+        <p>最简的闭环只有四步：<b>接收用户输入 → 让模型思考 → 把结果作为行动输出 → 把输出写回历史（观察）→ 回到顶部</b>。注意：这一章还没有任何"外部工具"，"行动"就是输出文本本身。</p>
+        <div class="note">把循环画出来，你就理解了后面所有框架（LangChain、OpenAI Agent 等）的本质——它们只是在循环的<b>不同节点上挂更多能力</b>。</div>
+        <div class="mermaid-box">
+          <pre class="mermaid">
+flowchart TD
+    A[用户输入] --> B[思考：llm_reason]
+    B --> C[行动：print]
+    C --> D[观察：写回历史]
+    D --> E{继续}
+    E -->|是| B
+    E -->|否| F[结束]
+          </pre>
+          <div class="mermaid-cap">图 01 · 裸循环：思考 → 行动 → 观察 → 回到思考</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">03</span>最小可运行代码</h2>
+        <p>这是本教程的起点，也是整条路的"第一行"。代码刻意极简，三要素在代码里一一对应：</p>
+        <div class="code-wrap">
+          <div class="code-head"><span class="fname">loop.py · 阶段 01</span><button class="copy-btn">复制</button></div>
+          <div class="code-body"><pre><code class="lang-py"># loop.py — 阶段 01：只有 思考→行动→观察，没有任何工具
+def llm_reason(messages):
+    """占位：调用大模型，返回回复文本。
+    真实环境中，这里替换为一次 API 调用。"""
+    return "（模型的原始回复）"
+
+class Agent:
+    def __init__(self, model="gpt-4o-mini"):
+        self.model = model
+        self.history = []            # 观察区：已发生的对话
+
+    def loop(self):
+        while True:                  # 循环 = 主轴的转动
+            user = input("你 > ").strip()
+            if user in {"exit", "quit"}:
+                break
+            self.history.append({"role": "user", "content": user})
+
+            reply = llm_reason(self.history)   # ① 思考
+            print("Agent >", reply)            # ② 行动（本阶段=输出文本）
+            self.history.append(               # ③ 观察：写回历史
+                {"role": "assistant", "content": reply})
+
+Agent().loop()</code></pre></div>
+        </div>
+        <p><b>逐行对照三要素：</b></p>
+        <ul>
+          <li><b>思考</b>＝<code class="inline">llm_reason(history)</code>——一次模型调用，只负责"想"。</li>
+          <li><b>行动</b>＝<code class="inline">print</code>——本阶段唯一动作，就是把想法说出去。</li>
+          <li><b>观察</b>＝<code class="inline">history.append</code>——把发生的事记下来，供下一轮思考使用。</li>
+        </ul>
+        <div class="note warn"><b>为什么"历史"这么重要？</b>因为模型无状态。删掉 <code class="inline">history</code>，Agent 就变成每轮"失忆"的复读机，这正是很多"看起来不聪明的 Agent"的病根。</div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">04</span>与上一章的差异</h2>
+        <p>开篇只建立了直觉，没有代码。所以这一章的每一行都是"新增"——这是你亲手写下的第一块地基：</p>
+        <div class="code-wrap" style="background:#0a1420">
+          <div class="code-head"><span class="fname">diff · 新增基线</span></div>
+          <div class="code-body" style="padding:10px 0">
+            <span class="diff-line add">class Agent:  # 新增：Agent 本体</span>
+            <span class="diff-line add">    def loop(self):  # 新增：主轴循环</span>
+            <span class="diff-line add">        history = []  # 新增：观察区</span>
+            <span class="diff-line add">        while True:  # 新增：循环条件</span>
+            <span class="diff-line add">            reply = llm_reason(history)  # 思考</span>
+            <span class="diff-line add">            history.append(reply)  # 观察</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">05</span>运行输出</h2>
+        <div class="term">
+          <div class="term-head"><span class="tb"></span><span class="tb"></span><span class="tb"></span><span>terminal — python loop.py</span></div>
+          <div class="term-body"><span class="prompt">$</span> python loop.py
+<span class="prompt">你</span> <span class="in">&gt; 什么是循环？</span>
+<span class="dim">Agent</span> <span class="in">&gt; 循环是一种重复执行某段逻辑的结构，直到满足条件为止。</span>
+<span class="prompt">你</span> <span class="in">&gt; 那 Agent 为什么是个循环？</span>
+<span class="dim">Agent</span> <span class="in">&gt; 因为它要不断 思考→行动→观察，直到得出答案或用户退出。</span>
+<span class="prompt">你</span> <span class="in">&gt; exit</span></div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">06</span>思考题</h2>
+        <div class="quiz">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>想一想</h3>
+          <ol>
+            <li>如果去掉 <b>history</b>（不保存上下文），Agent 的表现会发生什么变化？</li>
+            <li>这一章的"行动"只是 <b>print</b>，它和你理解的"工具调用"差在哪？</li>
+            <li>这个循环的<b>终止条件</b>有哪些？如果用户永远不退出，会发生什么？</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="preview">
+        <span class="arr">→</span>
+        <div><b>下一节 · 阶段 02</b><p>把"行动"从 print 升级为真实能力——给 Agent 装上工具调用。</p></div>
+      </div>
+    <div class="stage-foot">
+      <a class="page-btn prev" href="chapter-0.html"><span class="lab">← 上一章</span><span class="tt">开篇</span></a>
+      <a class="page-btn next" href="chapter-2.html"><span class="lab">下一章 →</span><span class="tt">阶段 02 · 工具调用</span></a>
+    </div>
+    </section>
+
+  </main>
+</div>
+<script src="assets/mermaid.min.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

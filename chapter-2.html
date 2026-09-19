@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段 02 · 工具调用 · Agent+Harness 教程</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230ea5b7'/%3E%3Ccircle cx='10' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Ccircle cx='22' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M14 14 L18 14 M14 18 L18 18' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://miaoda.feishu.cn"><link href="https://miaoda.feishu.cn/fonts/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-chapter="2">
+<button class="theme-toggle" aria-label="切换主题">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+<button id="navToggle" aria-label="切换目录">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div id="scrim"></div>
+<div id="app">
+  <aside id="sidebar">
+    <a class="brand" href="index.html" style="text-decoration:none;color:inherit">
+      <svg class="brand-logo" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="9" fill="#0ea5b7"/>
+        <circle cx="12" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <circle cx="28" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <path d="M17 17.5 L23 17.5 M17 22.5 L23 22.5" stroke="white" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">Agent + Harness</div>
+        <div class="brand-sub">从零到一 · 沉浸式教程</div>
+      </div>
+    </a>
+    <nav class="nav-scroll" id="nav"></nav>
+    <div class="side-foot">
+      <b id="progTxt">0 / 9 章</b>
+      <div class="progress-bar"><i id="progFill"></i></div>
+    </div>
+  </aside>
+  <main id="main">
+    <section class="stage">
+<div class="stage-head">
+        <div class="stage-num">CHAPTER 02 · 装上手脚</div>
+        <h1 class="stage-title">工具调用：让 Agent 长出 <span class="hl">手和脚</span></h1>
+        <p class="stage-desc">只靠对话，Agent 永远是"嘴上王者"。这一章我们用一张注册表给循环注入真实能力——计算、查时间，任何你定义的函数。</p>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">01</span>本阶段目标</h2>
+        <div class="goal-card">
+          <h3>学完你应该能</h3>
+          <ul>
+            <li><span class="chk">✓</span>理解"工具注册表"：名字 → 可调用函数</li>
+            <li><span class="chk">✓</span>看懂模型输出 tool_call 时，Agent 如何执行并回填结果</li>
+            <li><span class="chk">✓</span>明白"行动"从 print 升级为"调用外部世界"的那一刻发生了什么</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">02</span>原理：Agent 是怎么"伸手"的</h2>
+        <p>关键转变在<b>模型的输出</b>。上一章模型只能输出文本；这一章我们让模型在"直接回答"和"想调用工具"之间做选择——当它输出 <b>tool_call</b> 时，Agent 就去注册表里找到对应函数并执行。</p>
+        <p>工具的执行结果以 <b>tool 消息</b> 写回历史，作为"观察"回到思考。这保证了 Agent 能基于真实世界的反馈继续推理，而不是凭空瞎编。</p>
+        <div class="note">"工具"的本质，就是<b>把不可控的真实世界接入可控的循环</b>。注册表是解耦的关键：新增一个能力，只要加一个函数，不改循环。</div>
+        <div class="mermaid-box">
+          <pre class="mermaid">
+flowchart TD
+    USER[用户输入] --> LLM[思考：模型判断]
+    LLM --> CHOICE{输出类型}
+    CHOICE -->|直接回答| ANS[Agent 输出文本]
+    CHOICE -->|tool_call| LOOK[查注册表 TOOLS]
+    LOOK --> RUN[执行工具 fn]
+    RUN --> BACK[结果以 tool 消息写回]
+    BACK --> LLM
+          </pre>
+          <div class="mermaid-cap">图 02 · 工具调用：模型要"动手"时，Agent 替它执行并反馈观察</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">03</span>最小可运行代码</h2>
+        <div class="code-wrap">
+          <div class="code-head"><span class="fname">tools.py · 阶段 02</span><button class="copy-btn">复制</button></div>
+          <div class="code-body"><pre><code class="lang-py"># tools.py — 阶段 02：给 Agent 装上工具注册表
+TOOLS = {}                     # 注册表：名字 -> 可调用函数
+
+def tool(name):
+    """装饰器：把一个函数注册为 Agent 可用工具。"""
+    def deco(fn):
+        TOOLS[name] = fn
+        return fn
+    return deco
+
+@tool("calculate")
+def calculate(expr: str):
+    return str(eval(expr))     # 简易计算器（生产环境勿用 eval）
+
+@tool("current_time")
+def current_time(_unused=""):
+    from datetime import datetime
+    return datetime.now().isoformat()
+
+def llm_reason(messages):
+    """占位：真实环境返回 {'text': ...} 或 {'tool_call': ('name', {args})}"""
+    return {"text": "（模型回复）"}
+
+def run(user_input: str):
+    messages = [{"role": "user", "content": user_input}]
+    while True:
+        out = llm_reason(messages)               # ① 思考
+        if out.get("tool_call"):                 # ② 决定行动
+            name, args = out["tool_call"]
+            result = TOOLS[name](**args)         # ③ 行动：执行工具
+            messages.append({"role": "tool",     # ④ 观察：结果写回
+                             "name": name, "content": result})
+            print(f"[工具] {name}({args}) -> {result}")
+            continue                             # 回到思考
+        print("Agent >", out["text"])            # 直接回答，结束
+        break
+
+run("现在几点了？")</code></pre></div>
+        </div>
+        <ul>
+          <li><b>注册表</b> <code class="inline">TOOLS</code> 用装饰器填满，新工具＝新增一个带 <code class="inline">@tool</code> 的函数。</li>
+          <li><b>tool_call</b> 是模型表达的意图："我想调用 calculate(17*23)"。</li>
+          <li><b>循环次数</b> 此刻 ≈ 工具调用次数——每次调用都回到顶部再思考一次。</li>
+        </ul>
+        <div class="note warn"><b>死循环风险</b>：如果模型反复请求同一个工具，循环会停不下来。这就是为什么真实 Harness 必须限制最大步数——我们在阶段 03 会加。</div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">04</span>与上一章的差异</h2>
+        <div class="diff-cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>本章新增：注册表 + 工具 + 执行分支</div>
+        <div class="code-wrap" style="background:#0a1420">
+          <div class="code-head"><span class="fname">diff · 01 → 02</span></div>
+          <div class="code-body" style="padding:10px 0">
+            <span class="diff-line add">TOOLS = {}  # 新增：工具注册表</span>
+            <span class="diff-line add">def tool(name): ...  # 新增：注册装饰器</span>
+            <span class="diff-line add">@tool("calculate")  # 新增：计算工具</span>
+            <span class="diff-line add">@tool("current_time")  # 新增：时间工具</span>
+            <span class="diff-line del">print(reply)  # 移除：行动不再是简单输出</span>
+            <span class="diff-line add">if out.get("tool_call"):  # 新增：动手分支</span>
+            <span class="diff-line add">    result = TOOLS[name](**args)</span>
+            <span class="diff-line add">    messages.append({"role": "tool", ...})  # 观察回填</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">05</span>运行输出</h2>
+        <div class="term">
+          <div class="term-head"><span class="tb"></span><span class="tb"></span><span class="tb"></span><span>terminal — python tools.py</span></div>
+          <div class="term-body"><span class="prompt">$</span> python tools.py
+<span class="prompt">你</span> <span class="in">&gt; 现在几点了？</span>
+<span class="dim">[工具]</span> <span class="in">current_time() -> 2026-09-19T14:32:08</span>
+<span class="dim">Agent</span> <span class="in">&gt; 现在是 2026-09-19 14:32。</span>
+<span class="prompt">你</span> <span class="in">&gt; 帮我算 17 * 23</span>
+<span class="dim">[工具]</span> <span class="in">calculate(expr='17*23') -> 391</span>
+<span class="dim">Agent</span> <span class="in">&gt; 结果是 391。</span></div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">06</span>思考题</h2>
+        <div class="quiz">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>想一想</h3>
+          <ol>
+            <li>如果模型<b>连续错误地请求同一个工具</b>，怎么防止死循环？</li>
+            <li>为什么工具结果要以 <b>tool 角色</b>写回，而不是直接拼进用户消息？</li>
+            <li>工具<b>执行抛异常</b>时，Agent 应该怎样"观察"才能继续对话而不是崩掉？</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="preview">
+        <span class="arr">→</span>
+        <div><b>下一节 · 阶段 03</b><p>把散落的代码抽象成一个"执行层"——你的第一个 Harness 雏形诞生了。</p></div>
+      </div>
+    <div class="stage-foot">
+      <a class="page-btn prev" href="chapter-1.html"><span class="lab">← 上一章</span><span class="tt">阶段 01 · 最简 Agent Loop</span></a>
+      <a class="page-btn next" href="chapter-3.html"><span class="lab">下一章 →</span><span class="tt">阶段 03 · 基础 Harness</span></a>
+    </div>
+    </section>
+
+  </main>
+</div>
+<script src="assets/mermaid.min.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

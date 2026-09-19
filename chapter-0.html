@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>开篇 · Agent+Harness 教程</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230ea5b7'/%3E%3Ccircle cx='10' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Ccircle cx='22' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M14 14 L18 14 M14 18 L18 18' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://miaoda.feishu.cn"><link href="https://miaoda.feishu.cn/fonts/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-chapter="0">
+<button class="theme-toggle" aria-label="切换主题">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+<button id="navToggle" aria-label="切换目录">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div id="scrim"></div>
+<div id="app">
+  <aside id="sidebar">
+    <a class="brand" href="index.html" style="text-decoration:none;color:inherit">
+      <svg class="brand-logo" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="9" fill="#0ea5b7"/>
+        <circle cx="12" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <circle cx="28" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <path d="M17 17.5 L23 17.5 M17 22.5 L23 22.5" stroke="white" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">Agent + Harness</div>
+        <div class="brand-sub">从零到一 · 沉浸式教程</div>
+      </div>
+    </a>
+    <nav class="nav-scroll" id="nav"></nav>
+    <div class="side-foot">
+      <b id="progTxt">0 / 9 章</b>
+      <div class="progress-bar"><i id="progFill"></i></div>
+    </div>
+  </aside>
+  <main id="main">
+    <section class="stage">
+<div class="stage-head">
+        <div class="stage-num">CHAPTER 00 · 从这里开始</div>
+        <h1 class="stage-title">为什么要从零手写一个 <span class="hl">Agent</span>？</h1>
+        <p class="stage-desc">本教程不是教你怎么调用现成框架，而是带你从一行代码开始，亲手把"智能体"拆开再装回去——每一步只加一个零件，看清底层原理。</p>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">01</span>学习目标</h2>
+        <div class="goal-card">
+          <h3>本阶段你将理解</h3>
+          <ul>
+            <li><span class="chk">✓</span>Agent 到底由哪几个最小零件组成</li>
+            <li><span class="chk">✓</span>Harness 是什么、为什么需要一个"执行层"</li>
+            <li><span class="chk">✓</span>整套教程的学习路径与每章新增的能力</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">02</span>先建立直觉：Agent = 循环</h2>
+        <p>抛开所有营销话术，一个智能体最本质的形态，是这样一个循环：<b>接收输入 → 思考 → 行动 → 观察结果 → 再思考</b>。它像一台机器里的主轴，不停地转，直到得出答案或到达上限。</p>
+        <p>很多新手一上来就接触 LangChain、OpenAI 的 Agent SDK，看到的是封装好的黑盒。等你真遇到诡异的报错、想定制行为时，才发现自己完全不知道里面发生了什么。本教程的立场很直接：<b>不读懂循环，就不配用框架</b>。</p>
+        <div class="note">Harness（英文原意"马具/线束"）在 Agent 语境里指<b>承载和控制这个循环的执行层</b>：它负责跑循环、调度工具、管理状态、加载插件。你可以在后面阶段逐步把 Harness"长"出来。</div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">03</span>整条学习路径</h2>
+        <p>我们按"每次只加一个零件"的顺序推进，每章都比上一章只多出<b>最小的一块能力</b>。用下面的路线图记住这条路：</p>
+        <div class="mermaid-box">
+          <pre class="mermaid">
+flowchart LR
+    A["00 开篇<br/>建立直觉"] --> B["01 最简 Agent Loop<br/>思考·行动·观察"]
+    B --> C["02 工具调用<br/>给 Agent 手和脚"]
+    C --> D["03 基础 Harness<br/>抽象出执行层"]
+    D --> E["04 Harness 插件<br/>动态加载能力"]
+    E --> F["05 记忆模块<br/>记住上下文"]
+    F --> G["06 状态管理<br/>持久化中间结果"]
+    G --> H["07 多 Agent<br/>编排与调度"]
+    H --> I["08 观测与部署<br/>调试面板·上线"]
+          </pre>
+          <div class="mermaid-cap">图 00 · 学习路径：从裸循环到工程化的九步</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">04</span>怎么使用这套教程</h2>
+        <ul>
+          <li>左侧目录按顺序排列，<b>建议从头到尾走一遍</b>，每章只新增少量代码。</li>
+          <li>每章包含：目标 → 原理 → 流程图 → 最小代码 → 与上一版的差异 → 运行输出 → 思考题。</li>
+          <li>代码都是<b>可运行的 Python 伪实现</b>，用最小的篇幅讲清机制；动手在本地跑一遍效果最好。</li>
+          <li>绿色圆点标记你已经完成的章节，进度会在底部累积。</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">05</span>一句话记住</h2>
+        <div class="note warn"><b>Agent 的皮囊千变万化，骨架只有一个：循环。</b>后面的每一章，都是在给这个骨架装上新器官。</div>
+      </div>
+
+      <div class="preview">
+        <span class="arr">→</span>
+        <div><b>下一节 · 阶段 01</b><p>从最简的 Agent Loop 开始：只有思考、行动、观察，不碰任何工具。</p></div>
+      </div>
+    <div class="stage-foot">
+      <a class="page-btn prev" disabled><span class="lab">← 上一章</span><span class="tt">已是开篇</span></a>
+      <a class="page-btn next" href="chapter-1.html"><span class="lab">下一章 →</span><span class="tt">阶段 01 · 最简 Agent Loop</span></a>
+    </div>
+    </section>
+
+  </main>
+</div>
+<script src="assets/mermaid.min.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段 03 · 基础 Harness · Agent+Harness 教程</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230ea5b7'/%3E%3Ccircle cx='10' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Ccircle cx='22' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M14 14 L18 14 M14 18 L18 18' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://miaoda.feishu.cn"><link href="https://miaoda.feishu.cn/fonts/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-chapter="3">
+<button class="theme-toggle" aria-label="切换主题">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+<button id="navToggle" aria-label="切换目录">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div id="scrim"></div>
+<div id="app">
+  <aside id="sidebar">
+    <a class="brand" href="index.html" style="text-decoration:none;color:inherit">
+      <svg class="brand-logo" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="9" fill="#0ea5b7"/>
+        <circle cx="12" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <circle cx="28" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <path d="M17 17.5 L23 17.5 M17 22.5 L23 22.5" stroke="white" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">Agent + Harness</div>
+        <div class="brand-sub">从零到一 · 沉浸式教程</div>
+      </div>
+    </a>
+    <nav class="nav-scroll" id="nav"></nav>
+    <div class="side-foot">
+      <b id="progTxt">0 / 9 章</b>
+      <div class="progress-bar"><i id="progFill"></i></div>
+    </div>
+  </aside>
+  <main id="main">
+    <section class="stage">
+<div class="stage-head">
+        <div class="stage-num">CHAPTER 03 · 长出一个执行层</div>
+        <h1 class="stage-title">基础 <span class="hl">Harness</span>：把循环"托管"起来</h1>
+        <p class="stage-desc">前两章的循环还散在脚本里。这一章我们把"怎么跑循环、怎么管步数、怎么调工具"抽成一个执行层——这就是你的第一个 Harness。</p>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">01</span>本阶段目标</h2>
+        <div class="goal-card">
+          <h3>学完你应该能</h3>
+          <ul>
+            <li><span class="chk">✓</span>理解 Harness 为什么是"循环的所有者"</li>
+            <li><span class="chk">✓</span>把 Agent（大脑）与 Harness（身体/执行）解耦</li>
+            <li><span class="chk">✓</span>给循环加上<b>最大步数</b>，堵住死循环</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">02</span>原理：Harness = 循环的所有者</h2>
+        <p>到目前为止，<b>循环逻辑和业务逻辑混在一起</b>。一旦你同时跑多个 Agent、要统一处理错误、要限制步数，散装的代码就会崩成一团。</p>
+        <p>Harness 的职责就是<b>把"如何执行"从"执行什么"里拆出来</b>：Agent 只负责思考和决策，Harness 负责驱动循环、调用模型、调度工具、强制退出的规则。它像一辆车的车架与线束，把各个部件固定并连接起来。</p>
+        <div class="note">这一章开始，"Harness" 正式登场。它的英文原意正是"线束"——把分散部件捆在一起、让信号有序流动的那一层。</div>
+        <div class="mermaid-box">
+          <pre class="mermaid">
+flowchart LR
+    subgraph Harness["Harness · 执行层"]
+        LOOP["驱动循环<br/>受 max_steps 限制"]
+        CALL["调用模型 llm_reason"]
+        TOOL["调度工具 execute_tool"]
+        MAX["步数上限与异常处理"]
+    end
+    subgraph Agent["Agent · 大脑"]
+        REASON["思考与决策"]
+    end
+    USER["用户"] --> Harness
+    Harness --> Agent
+    Agent --> Harness
+    Harness --> OUT["输出答案"]
+          </pre>
+          <div class="mermaid-cap">图 03 · Harness 掌管循环，Agent 只负责思考</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">03</span>最小可运行代码</h2>
+        <div class="code-wrap">
+          <div class="code-head"><span class="fname">harness.py · 阶段 03</span><button class="copy-btn">复制</button></div>
+          <div class="code-body"><pre><code class="lang-py"># harness.py — 阶段 03：抽出执行层，循环归 Harness 所有
+class Harness:
+    """执行层：负责跑循环、调模型、调工具、限步数。"""
+
+    def __init__(self, agent, tools=None, max_steps=10):
+        self.agent = agent          # 大脑：只负责思考
+        self.tools = tools or {}    # 工具注册表
+        self.max_steps = max_steps  # 硬上限，堵死死循环
+        self.history = []           # 观察区
+
+    def execute_tool(self, name, args):
+        if name not in self.tools:
+            raise KeyError(f"未知工具: {name}")
+        return self.tools[name](**args)
+
+    def run(self, user_input: str) -> str:
+        self.history.append({"role": "user", "content": user_input})
+        step = 0
+        while step &lt; self.max_steps:          # 循环由 Harness 驱动
+            step += 1
+            out = self.agent.reason(self.history)   # ① 思考
+            if out.get("tool_call"):                # ② 行动
+                name, args = out["tool_call"]
+                try:
+                    result = self.execute_tool(name, args)
+                except Exception as e:              # 观察：错误也回填
+                    result = f"ERROR: {e}"
+                self.history.append(
+                    {"role": "tool", "name": name, "content": result})
+                continue
+            return out["text"]                      # ③ 输出
+        return "已达最大步数，强制结束。"
+
+# 大脑：只思考，不知道循环怎么跑
+class Agent:
+    def reason(self, messages):
+        return {"text": "（模型回复）"}     # 或 {"tool_call": (name, args)}</code></pre></div>
+        </div>
+        <ul>
+          <li><b>解耦</b>：<code class="inline">Agent</code> 不再自己 <code class="inline">while True</code>，只暴露一个 <code class="inline">reason()</code>。</li>
+          <li><b>托管</b>：循环、工具、历史、步数全部收进 <code class="inline">Harness</code>。</li>
+          <li><b>安全网</b>：<code class="inline">max_steps</code> 让循环必然终止；异常被捕获回填成观察，Agent 得以继续而不是崩掉。</li>
+        </ul>
+        <div class="note warn">这一步是整个教程的"分水岭"：从此以后，你所有的架构（插件、记忆、状态、多 Agent）都<b>挂在这个 Harness 上</b>，而不是塞进 Agent 里。</div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">04</span>与上一章的差异</h2>
+        <div class="diff-cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>本章重构：循环从脚本搬进 Harness</div>
+        <div class="code-wrap" style="background:#0a1420">
+          <div class="code-head"><span class="fname">diff · 02 → 03</span></div>
+          <div class="code-body" style="padding:10px 0">
+            <span class="diff-line add">class Harness:  # 新增：执行层</span>
+            <span class="diff-line add">    def __init__(self, agent, tools, max_steps=10):</span>
+            <span class="diff-line add">        self.max_steps = max_steps  # 新增：步数上限</span>
+            <span class="diff-line add">    def execute_tool(self, ...):  # 新增：工具调度</span>
+            <span class="diff-line add">    def run(self, user_input):  # 新增：Harness 拥有循环</span>
+            <span class="diff-line add">        try: result = self.execute_tool(...)  # 异常回填</span>
+            <span class="diff-line del">while True:  # 移除：循环不再属于业务脚本</span>
+            <span class="diff-line del">history = []  # 移除：历史移入 Harness</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">05</span>运行输出</h2>
+        <div class="term">
+          <div class="term-head"><span class="tb"></span><span class="tb"></span><span class="tb"></span><span>terminal — python harness.py</span></div>
+          <div class="term-body"><span class="prompt">$</span> python harness.py
+<span class="dim">h = Harness(agent=Agent(), tools=TOOLS)</span>
+<span class="dim">h.run("17*23 是多少？")</span>
+<span class="in">&gt; 思考 → tool_call('calculate', {'expr':'17*23'}) → 结果 391</span>
+<span class="in">&gt; 391</span>
+<span class="dim"># 死循环测试：模型一直请求同一工具</span>
+<span class="in">&gt; 已达到最大步数(10)，强制结束。</span></div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">06</span>思考题</h2>
+        <div class="quiz">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>想一想</h3>
+          <ol>
+            <li>把循环搬进 Harness 之后，<b>新增一个 Agent</b>（换一个模型）要改哪里？为什么省事？</li>
+            <li><b>max_steps</b> 之外，还有哪些"强制退出"策略能让循环更稳健？</li>
+            <li>如果两个不同的 Harness 实例想<b>共用同一套工具</b>，现在的代码支持吗？</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="preview">
+        <span class="arr">→</span>
+        <div><b>下一节 · 阶段 04</b><p>让 Harness 学会"动态加载能力"——插件机制登场。</p></div>
+      </div>
+    <div class="stage-foot">
+      <a class="page-btn prev" href="chapter-2.html"><span class="lab">← 上一章</span><span class="tt">阶段 02 · 工具调用</span></a>
+      <a class="page-btn next" href="chapter-4.html"><span class="lab">下一章 →</span><span class="tt">阶段 04 · Harness 插件</span></a>
+    </div>
+    </section>
+
+  </main>
+</div>
+<script src="assets/mermaid.min.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

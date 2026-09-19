@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段 04 · Harness 插件 · Agent+Harness 教程</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230ea5b7'/%3E%3Ccircle cx='10' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Ccircle cx='22' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M14 14 L18 14 M14 18 L18 18' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://miaoda.feishu.cn"><link href="https://miaoda.feishu.cn/fonts/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-chapter="4">
+<button class="theme-toggle" aria-label="切换主题">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+<button id="navToggle" aria-label="切换目录">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div id="scrim"></div>
+<div id="app">
+  <aside id="sidebar">
+    <a class="brand" href="index.html" style="text-decoration:none;color:inherit">
+      <svg class="brand-logo" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="9" fill="#0ea5b7"/>
+        <circle cx="12" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <circle cx="28" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <path d="M17 17.5 L23 17.5 M17 22.5 L23 22.5" stroke="white" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">Agent + Harness</div>
+        <div class="brand-sub">从零到一 · 沉浸式教程</div>
+      </div>
+    </a>
+    <nav class="nav-scroll" id="nav"></nav>
+    <div class="side-foot">
+      <b id="progTxt">0 / 9 章</b>
+      <div class="progress-bar"><i id="progFill"></i></div>
+    </div>
+  </aside>
+  <main id="main">
+    <section class="stage">
+<div class="stage-head">
+        <div class="stage-num">CHAPTER 04 · 可插拔的能力</div>
+        <h1 class="stage-title">Harness <span class="hl">插件</span>：按需加载，不臃肿</h1>
+        <p class="stage-desc">工具越加越多，Harness 会越来越胖。插件机制让能力<b>按需挂载</b>：用哪个加载哪个，还能在运行期发现能力清单。</p>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">01</span>本阶段目标</h2>
+        <div class="goal-card">
+          <h3>学完你应该能</h3>
+          <ul>
+            <li><span class="chk">✓</span>理解插件＝"一组能力 + 一个入口钩子"</li>
+            <li><span class="chk">✓</span>让 Harness 支持 <b>register / load</b> 插件</li>
+            <li><span class="chk">✓</span>学会把能力清单暴露给模型（工具选择的前提）</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">02</span>原理：插件 = 能力包 + 钩子</h2>
+        <p>一个插件本质上是一个<b>能力包</b>：它知道自己提供哪些工具、需要哪些初始化参数。Harness 通过统一的 <b>钩子</b>（一个 <code class="inline">install(harness)</code> 方法）把能力挂到执行层上。</p>
+        <p>这样做有三个好处：<b>隔离</b>（插件互不干扰）、<b>按需</b>（用哪个装哪个）、<b>可发现</b>（Harness 能把已装插件的能力清单喂给模型，让模型知道"现在能调用什么"）。</p>
+        <div class="note">真实框架（如各种 Agent SDK 的插件体系）就是把这个思想工业化了：声明能力 → 校验 → 挂载 → 暴露 schema → 供模型选择。</div>
+        <div class="mermaid-box">
+          <pre class="mermaid">
+flowchart TD
+    PLUGIN["插件包<br/>tools + install(harness)"] --> REG["harness.register_plugin"]
+    REG --> LOAD["加载：把工具并入注册表"]
+    LOAD --> SPEC["生成能力清单 schema"]
+    SPEC --> LLM["喂给模型：当前可用工具"]
+    LLM --> CALL["模型选工具 → 执行"]
+    CALL --> OBS["观察回填"]
+          </pre>
+          <div class="mermaid-cap">图 04 · 插件机制：能力包 → 挂载 → 暴露清单 → 供模型选择</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">03</span>最小可运行代码</h2>
+        <div class="code-wrap">
+          <div class="code-head"><span class="fname">plugins.py · 阶段 04</span><button class="copy-btn">复制</button></div>
+          <div class="code-body"><pre><code class="lang-py"># plugins.py — 阶段 04：给 Harness 加插件机制
+class Harness:
+    def __init__(self, agent, max_steps=10):
+        self.agent = agent
+        self.max_steps = max_steps
+        self.tools = {}                 # 插件工具并入这里
+        self.history = []
+
+    def register_plugin(self, plugin):
+        """钩子：让插件把能力挂到 Harness 上。"""
+        plugin.install(self)            # 调用插件入口
+
+    def tool_schema(self):
+        """暴露能力清单，供模型决定调用哪个工具。"""
+        return {name: {"doc": fn.__doc__}
+                for name, fn in self.tools.items()}
+
+    def execute_tool(self, name, args):
+        return self.tools[name](**args)
+
+    def run(self, user_input):
+        self.history.append({"role": "user", "content": user_input})
+        step = 0
+        while step &lt; self.max_steps:
+            step += 1
+            out = self.agent.reason(self.history, self.tool_schema())
+            if out.get("tool_call"):
+                name, args = out["tool_call"]
+                try:
+                    result = self.execute_tool(name, args)
+                except Exception as e:
+                    result = f"ERROR: {e}"
+                self.history.append({"role": "tool",
+                                     "name": name, "content": result})
+                continue
+            return out["text"]
+        return "已达最大步数，强制结束。"
+
+# ---- 插件定义：计算能力包 ----
+class CalculatorPlugin:
+    """计算器插件：只提供 calculate 工具。"""
+    def install(self, harness):
+        def calculate(expr):
+            """计算数学表达式。"""
+            return str(eval(expr))
+        harness.tools["calculate"] = calculate
+
+# ---- 插件定义：时间能力包 ----
+class TimePlugin:
+    """时间插件：只提供 current_time 工具。"""
+    def install(self, harness):
+        from datetime import datetime
+        def current_time(_unused=""):
+            """返回当前 ISO 时间。"""
+            return datetime.now().isoformat()
+        harness.tools["current_time"] = current_time
+
+# ---- 按需组装 ----
+h = Harness(agent=Agent(), max_steps=8)
+h.register_plugin(CalculatorPlugin())   # 只装计算器
+h.register_plugin(TimePlugin())         # 再装时间
+print(h.tool_schema())                  # 模型可见的能力清单</code></pre></div>
+        </div>
+        <ul>
+          <li><b>钩子统一</b>：每个插件实现 <code class="inline">install(harness)</code>，Harness 只认这一个入口。</li>
+          <li><b>按需</b>：不想要的插件根本不注册，工具表里就没有它。</li>
+          <li><b>可发现</b>：<code class="inline">tool_schema()</code> 把当前能力喂给模型，模型才知道"可以调什么"。</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">04</span>与上一章的差异</h2>
+        <div class="diff-cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>本章新增：插件接口 + 能力清单</div>
+        <div class="code-wrap" style="background:#0a1420">
+          <div class="code-head"><span class="fname">diff · 03 → 04</span></div>
+          <div class="code-body" style="padding:10px 0">
+            <span class="diff-line add">def register_plugin(self, plugin):  # 新增：插件钩子</span>
+            <span class="diff-line add">    plugin.install(self)</span>
+            <span class="diff-line add">def tool_schema(self):  # 新增：暴露能力清单</span>
+            <span class="diff-line add">class CalculatorPlugin:  # 新增：计算器插件</span>
+            <span class="diff-line add">    def install(self, harness): ...</span>
+            <span class="diff-line add">class TimePlugin:  # 新增：时间插件</span>
+            <span class="diff-line add">h.register_plugin(CalculatorPlugin())  # 按需组装</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">05</span>运行输出</h2>
+        <div class="term">
+          <div class="term-head"><span class="tb"></span><span class="tb"></span><span class="tb"></span><span>terminal — python plugins.py</span></div>
+          <div class="term-body"><span class="prompt">$</span> python plugins.py
+<span class="dim"># 只注册了两个插件后的能力清单：</span>
+<span class="in">{
+  'calculate':     {'doc': '计算数学表达式。'},
+  'current_time':  {'doc': '返回当前 ISO 时间。'}
+}</span>
+<span class="dim"># 若不注册 TimePlugin，清单里就没有 current_time，</span>
+<span class="dim"># 模型永远不会去调用它——这就是"按需"。</span></div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">06</span>思考题</h2>
+        <div class="quiz">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>想一想</h3>
+          <ol>
+            <li>两个插件都注册了同名的 <b>calculate</b>，后加载的会覆盖前者——这是好设计还是隐患？怎么处理冲突？</li>
+            <li><b>tool_schema()</b> 里目前只有 doc，真实系统里通常还会给模型的工具描述加上参数类型。为什么？</li>
+            <li>插件如果想<b>监听循环的每个节点</b>（如"每步之后打日志"），应该再提供什么样的钩子？</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="preview">
+        <span class="arr">→</span>
+        <div><b>下一节 · 阶段 05</b><p>让 Agent 拥有记忆——Harness 里挂上一个记忆模块。</p></div>
+      </div>
+    <div class="stage-foot">
+      <a class="page-btn prev" href="chapter-3.html"><span class="lab">← 上一章</span><span class="tt">阶段 03 · 基础 Harness</span></a>
+      <a class="page-btn next" href="chapter-5.html"><span class="lab">下一章 →</span><span class="tt">阶段 05 · 记忆模块</span></a>
+    </div>
+    </section>
+
+  </main>
+</div>
+<script src="assets/mermaid.min.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

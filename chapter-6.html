@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段 06 · 状态管理 · Agent+Harness 教程</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230ea5b7'/%3E%3Ccircle cx='10' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Ccircle cx='22' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M14 14 L18 14 M14 18 L18 18' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://miaoda.feishu.cn"><link href="https://miaoda.feishu.cn/fonts/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-chapter="6">
+<button class="theme-toggle" aria-label="切换主题">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+<button id="navToggle" aria-label="切换目录">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div id="scrim"></div>
+<div id="app">
+  <aside id="sidebar">
+    <a class="brand" href="index.html" style="text-decoration:none;color:inherit">
+      <svg class="brand-logo" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="9" fill="#0ea5b7"/>
+        <circle cx="12" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <circle cx="28" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <path d="M17 17.5 L23 17.5 M17 22.5 L23 22.5" stroke="white" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">Agent + Harness</div>
+        <div class="brand-sub">从零到一 · 沉浸式教程</div>
+      </div>
+    </a>
+    <nav class="nav-scroll" id="nav"></nav>
+    <div class="side-foot">
+      <b id="progTxt">0 / 9 章</b>
+      <div class="progress-bar"><i id="progFill"></i></div>
+    </div>
+  </aside>
+  <main id="main">
+    <section class="stage">
+<div class="stage-head">
+        <div class="stage-num">CHAPTER 06 · 让执行可追踪</div>
+        <h1 class="stage-title">状态管理：把每一步的 <span class="hl">中间结果</span>留下来</h1>
+        <p class="stage-desc">现在的 Harness 跑完就"忘了过程"。状态管理让每一步的思考、工具结果、位置都被记录，支持断点续跑与事后复盘。</p>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">01</span>本阶段目标</h2>
+        <div class="goal-card">
+          <h3>学完你应该能</h3>
+          <ul>
+            <li><span class="chk">✓</span>理解"状态"是 Harness 运行过程的完整快照</li>
+            <li><span class="chk">✓</span>用 <b>Step 记录</b> 追踪每一步（思考/工具/结果）</li>
+            <li><span class="chk">✓</span>实现简单的<b>断点续跑</b>：从某一步恢复，不重头再来</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">02</span>原理：状态 = 过程的可回溯快照</h2>
+        <p>真正的 Agent 应用很少"一把梭"。如果第 20 步崩了，或用户想回看"它到底经历了什么"，没有状态管理就无从谈起。</p>
+        <p>我们把 Harness 的运行过程抽象成 <b>Step 序列</b>：每一步记录 <b>类型</b>（思考 / 工具 / 回答）、<b>输入</b>、<b>输出</b>、<b>序号</b>。这些 Step 组成一份可序列化的 <b>状态</b>。有了状态，就能<b>暂停 → 序列化 → 恢复</b>，也能在恢复时跳过已完成的步骤。</p>
+        <div class="note">状态管理是"可观测性"和"工程化"的地基——下一章的观测面板、最后一章的部署，都建立在状态之上。</div>
+        <div class="mermaid-box">
+          <pre class="mermaid">
+flowchart LR
+    subgraph State["Harness State"]
+        S1["step 1 · 思考"] --> S2["step 2 · 工具"]
+        S2 --> S3["step 3 · 思考"] --> S4["step 4 · 回答"]
+    end
+    RUN["run()"] --> State
+    State -- 序列化 --> JSON["checkpoint.json"]
+    JSON -- 恢复续跑 --> State
+          </pre>
+          <div class="mermaid-cap">图 06 · 每一步都被记录成 Step，状态可序列化、可恢复</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">03</span>最小可运行代码</h2>
+        <div class="code-wrap">
+          <div class="code-head"><span class="fname">state.py · 阶段 06</span><button class="copy-btn">复制</button></div>
+          <div class="code-body"><pre><code class="lang-py"># state.py — 阶段 06：Harness 状态管理
+import json
+
+class Step:
+    """运行中的一步：类型、输入、输出、序号。"""
+    def __init__(self, kind, **payload):
+        self.kind = kind          # think / tool / answer
+        self.payload = payload
+    def to_dict(self):
+        return {"kind": self.kind, **self.payload}
+
+class HarnessState:
+    """Harness 运行过程的可序列化快照。"""
+    def __init__(self):
+        self.steps = []           # 已执行的步骤
+        self.pending = []         # 尚未执行的输入
+        self.cursor = 0           # 当前推进位置
+
+    def record(self, step: Step):
+        step.index = len(self.steps)
+        self.steps.append(step)
+
+    def snapshot(self) -> str:
+        return json.dumps({
+            "cursor": self.cursor,
+            "steps": [s.to_dict() for s in self.steps]})
+
+    @classmethod
+    def load(cls, text: str):
+        """从快照恢复状态（断点续跑）。"""
+        data = json.loads(text)
+        st = cls(); st.cursor = data["cursor"]
+        for d in data["steps"]:
+            kind = d.pop("kind"); st.steps.append(Step(kind, **d))
+        return st
+
+class Harness:
+    def __init__(self, agent, max_steps=10):
+        self.agent = agent; self.tools = {}
+        self.max_steps = max_steps
+        self.state = HarnessState()   # Harness 持有状态
+
+    def run(self, user_input):
+        # 若是恢复：跳过已完成的步骤，从 cursor 继续
+        self.state.pending.append({"role": "user", "content": user_input})
+        while self.state.cursor &lt; self.max_steps:
+            item = self.state.pending[self.state.cursor]
+            out = self.agent.reason([item], self.tools)
+            if out.get("tool_call"):
+                name, args = out["tool_call"]
+                result = self.tools[name](**args)
+                self.state.record(Step("tool", name=name, args=args,
+                                       result=result))
+            else:
+                self.state.record(Step("answer", text=out["text"]))
+                return out["text"], self.state.snapshot()
+        return "已达最大步数", self.state.snapshot()</code></pre></div>
+        </div>
+        <ul>
+          <li><b>Step</b>：每一步都被结构化记录，类型、输入、输出一目了然。</li>
+          <li><b>HarnessState</b>：持有步骤与游标，<code class="inline">snapshot()</code> 输出 JSON。</li>
+          <li><b>断点续跑</b>：<code class="inline">load()</code> 恢复后从 <code class="inline">cursor</code> 继续，不重头再来。</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">04</span>与上一章的差异</h2>
+        <div class="diff-cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>本章新增：Step 记录 + 可序列化状态</div>
+        <div class="code-wrap" style="background:#0a1420">
+          <div class="code-head"><span class="fname">diff · 05 → 06</span></div>
+          <div class="code-body" style="padding:10px 0">
+            <span class="diff-line add">class Step:  # 新增：单步记录</span>
+            <span class="diff-line add">    def to_dict(self): ...</span>
+            <span class="diff-line add">class HarnessState:  # 新增：运行快照</span>
+            <span class="diff-line add">    def snapshot(self): ...  # 序列化</span>
+            <span class="diff-line add">    @classmethod load(cls, text): ...  # 断点恢复</span>
+            <span class="diff-line add">self.state = HarnessState()  # Harness 持有状态</span>
+            <span class="diff-line add">    self.state.record(Step("tool", ...))  # 记录每一步</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">05</span>运行输出</h2>
+        <div class="term">
+          <div class="term-head"><span class="tb"></span><span class="tb"></span><span class="tb"></span><span>terminal — python state.py</span></div>
+          <div class="term-body"><span class="prompt">$</span> python state.py
+<span class="dim">answer, snapshot = h.run("17*23=?")</span>
+<span class="dim"># 产生的状态快照：</span>
+<span class="in">{
+  "cursor": 2,
+  "steps": [
+    {"kind":"tool", "name":"calculate", "args":{"expr":"17*23"}, "result":"391"},
+    {"kind":"answer", "text":"结果是 391"}
+  ]
+}</span>
+<span class="dim"># 用 HarnessState.load(snapshot) 即可从第 2 步继续。</span></div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2><span class="mark">06</span>思考题</h2>
+        <div class="quiz">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>想一想</h3>
+          <ol>
+            <li>如果工具执行有<b>副作用</b>（比如扣费、发消息），断点续跑时重放步骤会不会造成重复副作用？怎么防？</li>
+            <li>状态快照里存了 <b>完整工具参数</b>，可能含敏感信息。上线前该怎么做脱敏？</li>
+            <li>除了 JSON，状态还能存到哪？什么时候你需要<b>外部持久化</b>（数据库/对象存储）？</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="preview">
+        <span class="arr">→</span>
+        <div><b>下一节 · 阶段 07</b><p>一个 Harness 不够用——多 Agent 编排与调度。</p></div>
+      </div>
+    <div class="stage-foot">
+      <a class="page-btn prev" href="chapter-5.html"><span class="lab">← 上一章</span><span class="tt">阶段 05 · 记忆模块</span></a>
+      <a class="page-btn next" href="chapter-7.html"><span class="lab">下一章 →</span><span class="tt">阶段 07 · 多 Agent</span></a>
+    </div>
+    </section>
+
+  </main>
+</div>
+<script src="assets/mermaid.min.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

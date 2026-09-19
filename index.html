@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent + Harness · 从零到一沉浸式教程</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230ea5b7'/%3E%3Ccircle cx='10' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Ccircle cx='22' cy='16' r='4' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='M14 14 L18 14 M14 18 L18 18' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://miaoda.feishu.cn"><link href="https://miaoda.feishu.cn/fonts/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-chapter="index">
+<button class="theme-toggle" aria-label="切换主题">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
+<button id="navToggle" aria-label="切换目录">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div id="scrim"></div>
+<div id="app">
+  <aside id="sidebar">
+    <a class="brand" href="index.html" style="text-decoration:none;color:inherit">
+      <svg class="brand-logo" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="9" fill="#0ea5b7"/>
+        <circle cx="12" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <circle cx="28" cy="20" r="5" stroke="white" stroke-width="2.6"/>
+        <path d="M17 17.5 L23 17.5 M17 22.5 L23 22.5" stroke="white" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">Agent + Harness</div>
+        <div class="brand-sub">从零到一 · 沉浸式教程</div>
+      </div>
+    </a>
+    <nav class="nav-scroll" id="nav"></nav>
+    <div class="side-foot">
+      <b id="progTxt">0 / 9 章</b>
+      <div class="progress-bar"><i id="progFill"></i></div>
+    </div>
+  </aside>
+  <main id="main">
+    <div class="hero">
+      <div class="kicker">FROM ZERO TO ONE</div>
+      <h1>亲手拆开再装回：<span class="hl">Agent + Harness</span></h1>
+      <p>不教你调用现成框架，而是从一行代码开始。每章只加一个零件，由易到难，九步走完——从裸循环到带工具、插件、记忆、状态、多 Agent 与观测的完整执行层。</p>
+      <div class="hero-meta">
+        <span><b>9</b> 个章节</span>
+        <span><b>由易到难</b> 渐进</span>
+        <span><b>本地</b> 直接打开</span>
+        <span><b>明暗</b> 双主题</span>
+      </div>
+    </div>
+    <h2 style="font-family:var(--font-display);font-size:20px;margin-bottom:18px">学习路径</h2>
+    <div class="chapter-grid">
+    <a class="chapter-card" href="chapter-0.html">
+      <div class="cc-num">CHAPTER 00</div>
+      <h3>开篇</h3>
+      <p>建立直觉，看清 Agent 最小骨架</p>
+      <div class="cc-tags"><span class="cc-tag">概念</span><span class="cc-tag">路线图</span></div>
+    </a>
+    <a class="chapter-card" href="chapter-1.html">
+      <div class="cc-num">CHAPTER 01</div>
+      <h3>阶段 01 · 最简 Agent Loop</h3>
+      <p>裸循环：思考→行动→观察</p>
+      <div class="cc-tags"><span class="cc-tag">循环</span><span class="cc-tag">思考·行动·观察</span></div>
+    </a>
+    <a class="chapter-card" href="chapter-2.html">
+      <div class="cc-num">CHAPTER 02</div>
+      <h3>阶段 02 · 工具调用</h3>
+      <p>给 Agent 装上工具注册表</p>
+      <div class="cc-tags"><span class="cc-tag">注册表</span><span class="cc-tag">tool_call</span></div>
+    </a>
+    <a class="chapter-card" href="chapter-3.html">
+      <div class="cc-num">CHAPTER 03</div>
+      <h3>阶段 03 · 基础 Harness</h3>
+      <p>抽象出执行层，循环归 Harness</p>
+      <div class="cc-tags"><span class="cc-tag">执行层</span><span class="cc-tag">解耦</span></div>
+    </a>
+    <a class="chapter-card" href="chapter-4.html">
+      <div class="cc-num">CHAPTER 04</div>
+      <h3>阶段 04 · Harness 插件</h3>
+      <p>按需加载能力，暴露清单</p>
+      <div class="cc-tags"><span class="cc-tag">插件</span><span class="cc-tag">能力清单</span></div>
+    </a>
+    <a class="chapter-card" href="chapter-5.html">
+      <div class="cc-num">CHAPTER 05</div>
+      <h3>阶段 05 · 记忆模块</h3>
+      <p>短期记忆+长期摘要，防失忆</p>
+      <div class="cc-tags"><span class="cc-tag">上下文</span><span class="cc-tag">摘要</span></div>
+    </a>
+    <a class="chapter-card" href="chapter-6.html">
+      <div class="cc-num">CHAPTER 06</div>
+      <h3>阶段 06 · 状态管理</h3>
+      <p>每步可记录，支持断点续跑</p>
+      <div class="cc-tags"><span class="cc-tag">Step</span><span class="cc-tag">断点续跑</span></div>
+    </a>
+    <a class="chapter-card" href="chapter-7.html">
+      <div class="cc-num">CHAPTER 07</div>
+      <h3>阶段 07 · 多 Agent</h3>
+      <p>编排器+专才，多 Agent 协作</p>
+      <div class="cc-tags"><span class="cc-tag">编排器</span><span class="cc-tag">专才</span></div>
+    </a>
+    <a class="chapter-card" href="chapter-8.html">
+      <div class="cc-num">CHAPTER 08</div>
+      <h3>阶段 08 · 观测与部署</h3>
+      <p>可观测三件套+工程化部署</p>
+      <div class="cc-tags"><span class="cc-tag">可观测</span><span class="cc-tag">工程化</span></div>
+    </a>
+    </div>
+
+  </main>
+</div>
+<script src="assets/mermaid.min.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
